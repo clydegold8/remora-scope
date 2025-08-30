@@ -97,7 +97,7 @@ export default function Dashboard() {
         {/* Supabase Integration Alert */}
         <Alert className="border-warning bg-warning/10 animate-fade-in">
           <AlertCircle className="h-4 w-4 text-warning" />
-          <AlertDescription className="text-warning-foreground">
+          <AlertDescription className="text-foreground">
             <strong>Database Integration Required:</strong> Connect to Supabase using the green button in the top right to enable data persistence and real-time functionality.
           </AlertDescription>
         </Alert>
