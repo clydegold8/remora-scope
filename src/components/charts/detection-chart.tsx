@@ -81,7 +81,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
     scales: {
       x: {
         ticks: {
-          color: 'hsl(var(--muted-foreground))',
+          color: 'hsl(var(--foreground))',
           font: {
             family: 'Inter',
           }
@@ -92,7 +92,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
       },
       y: {
         ticks: {
-          color: 'hsl(var(--muted-foreground))',
+          color: 'hsl(var(--foreground))',
           font: {
             family: 'Inter',
           }
@@ -138,7 +138,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
     scales: {
       x: {
         ticks: {
-          color: 'hsl(var(--muted-foreground))',
+          color: 'hsl(var(--foreground))',
           font: {
             family: 'Inter',
           }
@@ -149,7 +149,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
       },
       y: {
         ticks: {
-          color: 'hsl(var(--muted-foreground))',
+          color: 'hsl(var(--foreground))',
           font: {
             family: 'Inter',
           }

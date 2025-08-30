@@ -1,4 +1,4 @@
-import { Activity, Waves } from "lucide-react"
+import { Activity, Car, Users } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 export function DashboardHeader() {
@@ -9,12 +9,12 @@ export function DashboardHeader() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="relative">
-                <Waves className="h-8 w-8 text-primary animate-pulse-glow" />
-                <Activity className="absolute -top-1 -right-1 h-4 w-4 text-accent" />
+                <Car className="h-8 w-8 text-primary animate-pulse-glow" />
+                <Users className="absolute -top-1 -right-1 h-4 w-4 text-accent" />
               </div>
               <div>
-                <h1 className="text-xl font-bold gradient-text">Sensor Detection Hub</h1>
-                <p className="text-xs text-muted-foreground">Marine Analytics Platform</p>
+                <h1 className="text-xl font-bold gradient-text">Urban Traffic Hub</h1>
+                <p className="text-xs text-muted-foreground">Traffic & Environmental Monitoring</p>
               </div>
             </div>
           </div>
