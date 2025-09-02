@@ -1,54 +1,17 @@
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Trash2, MapPin, Calendar, Users, Car, Activity } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { MapPin, Calendar, Users, Car, Activity } from "lucide-react"
 
-interface DetectionRecord {
-  id: string
-  remora_id: number
-  people_count: number
-  car_count: number
-  latitude?: number
-  longitude?: number
-  altitude?: number
-  created_at: string
-}
+import { DetectionData } from "@/hooks/useDetections"
 
 interface DataTableProps {
-  data: DetectionRecord[]
-  onDelete: (id: string) => Promise<void>
+  data: DetectionData[]
   isLoading?: boolean
 }
 
-export function DataTable({ data, onDelete, isLoading = false }: DataTableProps) {
-  const { toast } = useToast()
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  const handleDelete = async (id: string, remoraId: number) => {
-    if (!confirm(`Are you sure you want to delete detection from Remora #${remoraId}?`)) {
-      return
-    }
-
-    try {
-      setDeletingId(id)
-      await onDelete(id)
-      toast({
-        title: "Detection Deleted",
-        description: "The sensor detection has been successfully removed.",
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete detection. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setDeletingId(null)
-    }
-  }
+export function DataTable({ data, isLoading = false }: DataTableProps) {
+  // Remove delete functionality as requested
 
   const formatLocation = (lat?: number, lng?: number) => {
     if (!lat || !lng) return "N/A"
@@ -74,7 +37,7 @@ export function DataTable({ data, onDelete, isLoading = false }: DataTableProps)
             <div className="text-center">
               <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No detections recorded yet</p>
-              <p className="text-sm">Start adding sensor data to see the history</p>
+              <p className="text-sm">Sensor data will appear here when available</p>
             </div>
           </div>
         </CardContent>
@@ -95,7 +58,7 @@ export function DataTable({ data, onDelete, isLoading = false }: DataTableProps)
           </Badge>
         </CardTitle>
         <CardDescription>
-          Recent sensor detection records from your marine monitoring network
+          Recent sensor detection records from your urban traffic monitoring network
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,7 +92,6 @@ export function DataTable({ data, onDelete, isLoading = false }: DataTableProps)
                   </div>
                 </TableHead>
                 <TableHead>Altitude</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -180,17 +142,6 @@ export function DataTable({ data, onDelete, isLoading = false }: DataTableProps)
                     <div className="text-sm">
                       {record.altitude ? `${record.altitude.toFixed(1)}m` : "N/A"}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(record.id, record.remora_id)}
-                      disabled={deletingId === record.id || isLoading}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

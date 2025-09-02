@@ -1,7 +1,14 @@
-import { Activity, Car, Users } from "lucide-react"
+import { Activity, Car, Users, LogOut } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function DashboardHeader() {
+  const { signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-md animate-fade-in">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,6 +32,15 @@ export function DashboardHeader() {
               <span>System Online</span>
             </div>
             <ThemeToggle />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="hidden sm:flex"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>
