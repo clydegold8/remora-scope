@@ -173,6 +173,7 @@ export default function Auth() {
     )
   }
 
+  console.log(registerForm.getValues(), loginForm.getValues(),)
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md glass-card animate-slide-in">
@@ -194,7 +195,7 @@ export default function Auth() {
         <CardContent>
           {isLogin ? (
             <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+              <form key="loginForm" onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -251,13 +252,13 @@ export default function Auth() {
             </Form>
           ) : (
             <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+              <form key="registerForm" onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
                 <FormField
                   control={registerForm.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Emails</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
