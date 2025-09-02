@@ -64,6 +64,19 @@ export default function Auth() {
     checkUser()
   }, [navigate])
 
+  // Reset forms when switching between login and register
+  useEffect(() => {
+    loginForm.reset({
+      email: "",
+      password: "",
+    })
+    registerForm.reset({
+      email: "",
+      password: "",
+      confirmPassword: "",
+    })
+  }, [isLogin, loginForm, registerForm])
+
   const handleLogin = async (data: LoginFormData) => {
     try {
       setIsLoading(true)
