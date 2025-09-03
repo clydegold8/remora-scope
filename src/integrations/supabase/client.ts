@@ -2,13 +2,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://ecxtyrgrmwurprwqqqxl.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjeHR5cmdybXd1cnByd3FxcXhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1Mzc2OTIsImV4cCI6MjA3MjExMzY5Mn0.ydQGqzJpbfgGd8CPCx10PT-FGJ-qWtgGjJ8fpFjumdU";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
+// get credentials from the env
+const apiUrl = import.meta.env.VITE_SUPABASE_URL;
+const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+if(!apiKey || !apiUrl){
+  throw 'CREDENTIALS NOT SET';
+}
+
+
+export const supabase = createClient<Database>(apiUrl, apiKey, {
   auth: {
     storage: localStorage,
     persistSession: true,

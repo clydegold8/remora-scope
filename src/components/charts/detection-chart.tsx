@@ -1,4 +1,4 @@
-import { Line, Bar } from 'react-chartjs-2'
+import { Line, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,10 +10,16 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
-} from 'chart.js'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TrendingUp, BarChart3 } from "lucide-react"
+} from "chart.js";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TrendingUp, BarChart3 } from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -24,83 +30,107 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-)
+);
 
 interface DetectionData {
-  id: string
-  remora_id: number
-  people_count: number
-  car_count: number
-  created_at: string
+  id: string;
+  remora_id: number;
+  people_count: number;
+  car_count: number;
+  created_at: string;
 }
 
 interface DetectionChartProps {
-  data: DetectionData[]
+  data: DetectionData[];
 }
 
 export function DetectionChart({ data }: DetectionChartProps) {
   // Prepare data for charts
-  const sortedData = data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-  
-  const labels = sortedData.map(item => 
-    new Date(item.created_at).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit'
-    })
-  )
-  
-  const peopleData = sortedData.map(item => item.people_count)
-  const carData = sortedData.map(item => item.car_count)
+  const sortedData = data.sort(
+    (a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
 
-  const lineChartOptions: ChartOptions<'line'> = {
+  const labels = sortedData.map((item) =>
+    new Date(item.created_at).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+    })
+  );
+
+  const peopleData = sortedData.map((item) => item.people_count);
+  const carData = sortedData.map((item) => item.car_count);
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  const foreground = rootStyles.getPropertyValue("--foreground").trim();
+  const card = rootStyles.getPropertyValue("--card").trim();
+  const cardForeground = rootStyles
+    .getPropertyValue("--card-foreground")
+    .trim();
+  const border = rootStyles.getPropertyValue("--border").trim();
+  const primary = rootStyles.getPropertyValue("--primary").trim();
+  const accent = rootStyles.getPropertyValue("--accent").trim();
+
+  const hslForeground = `hsl(${foreground})`;
+  const hslCard = `hsl(${card})`;
+  const hslCardForeground = `hsl(${cardForeground})`;
+  const hslBorder = `hsl(${border})`;
+  const hslPrimary = `hsl(${primary})`;
+  const hslAccent = `hsl(${accent})`;
+  const hslPrimaryBg = `hsl(${primary} / 0.2)`;
+  const hslAccentBg = `hsl(${accent} / 0.2)`;
+
+  console.log(foreground);
+
+  const lineChartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
         labels: {
           usePointStyle: true,
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
-        }
+            family: "Inter",
+          },
+        },
       },
       title: {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'hsl(var(--card))',
-        titleColor: 'hsl(var(--card-foreground))',
-        bodyColor: 'hsl(var(--card-foreground))',
-        borderColor: 'hsl(var(--border))',
+        backgroundColor: hslCard,
+        titleColor: hslCardForeground,
+        bodyColor: hslCardForeground,
+        borderColor: hslBorder,
         borderWidth: 1,
-      }
+      },
     },
     scales: {
       x: {
         ticks: {
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
+            family: "Inter",
+          },
         },
         grid: {
-          color: 'hsl(var(--border))',
-        }
+          color: hslBorder,
+        },
       },
       y: {
         ticks: {
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
+            family: "Inter",
+          },
         },
         grid: {
-          color: 'hsl(var(--border))',
-        }
-      }
+          color: hslBorder,
+        },
+      },
     },
     elements: {
       line: {
@@ -109,79 +139,79 @@ export function DetectionChart({ data }: DetectionChartProps) {
       point: {
         radius: 4,
         hoverRadius: 6,
-      }
-    }
-  }
+      },
+    },
+  };
 
-  const barChartOptions: ChartOptions<'bar'> = {
+  const barChartOptions: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
         labels: {
           usePointStyle: true,
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
-        }
+            family: "Inter",
+          },
+        },
       },
       tooltip: {
-        backgroundColor: 'hsl(var(--card))',
-        titleColor: 'hsl(var(--card-foreground))',
-        bodyColor: 'hsl(var(--card-foreground))',
-        borderColor: 'hsl(var(--border))',
+        backgroundColor: hslCard,
+        titleColor: hslCardForeground,
+        bodyColor: hslCardForeground,
+        borderColor: hslBorder,
         borderWidth: 1,
-      }
+      },
     },
     scales: {
       x: {
         ticks: {
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
+            family: "Inter",
+          },
         },
         grid: {
           display: false,
-        }
+        },
       },
       y: {
         ticks: {
-          color: 'hsl(var(--foreground))',
+          color: hslForeground,
           font: {
-            family: 'Inter',
-          }
+            family: "Inter",
+          },
         },
         grid: {
-          color: 'hsl(var(--border))',
-        }
-      }
-    }
-  }
+          color: hslBorder,
+        },
+      },
+    },
+  };
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: 'People Detected',
+        label: "People Detected",
         data: peopleData,
-        borderColor: 'hsl(var(--primary))',
-        backgroundColor: 'hsl(var(--primary) / 0.2)',
+        borderColor: hslPrimary,
+        backgroundColor: hslPrimaryBg,
         fill: true,
         borderWidth: 2,
       },
       {
-        label: 'Cars Detected',
+        label: "Cars Detected",
         data: carData,
-        borderColor: 'hsl(var(--accent))',
-        backgroundColor: 'hsl(var(--accent) / 0.2)',
+        borderColor: hslAccent,
+        backgroundColor: hslAccentBg,
         fill: true,
         borderWidth: 2,
       },
     ],
-  }
+  };
 
   if (data.length === 0) {
     return (
@@ -191,7 +221,9 @@ export function DetectionChart({ data }: DetectionChartProps) {
             <TrendingUp className="h-5 w-5 text-primary" />
             <span>Detection Analytics</span>
           </CardTitle>
-          <CardDescription>Visual analysis of sensor detection patterns</CardDescription>
+          <CardDescription>
+            Visual analysis of sensor detection patterns
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -203,7 +235,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -213,7 +245,9 @@ export function DetectionChart({ data }: DetectionChartProps) {
           <TrendingUp className="h-5 w-5 text-primary" />
           <span>Detection Analytics</span>
         </CardTitle>
-        <CardDescription>Visual analysis of sensor detection patterns over time</CardDescription>
+        <CardDescription>
+          Visual analysis of sensor detection patterns over time
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="line" className="w-full">
@@ -227,13 +261,13 @@ export function DetectionChart({ data }: DetectionChartProps) {
               <span>Comparison</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="line" className="mt-6">
             <div className="h-80">
               <Line data={chartData} options={lineChartOptions} />
             </div>
           </TabsContent>
-          
+
           <TabsContent value="bar" className="mt-6">
             <div className="h-80">
               <Bar data={chartData} options={barChartOptions} />
@@ -242,5 +276,5 @@ export function DetectionChart({ data }: DetectionChartProps) {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
