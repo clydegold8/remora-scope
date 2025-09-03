@@ -81,8 +81,6 @@ export function DetectionChart({ data }: DetectionChartProps) {
   const hslPrimaryBg = `hsl(${primary} / 0.2)`;
   const hslAccentBg = `hsl(${accent} / 0.2)`;
 
-  console.log(foreground);
-
   const lineChartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
