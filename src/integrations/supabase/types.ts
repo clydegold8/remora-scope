@@ -96,6 +96,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_first_login: boolean | null
+          temp_password: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_first_login?: boolean | null
+          temp_password: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_first_login?: boolean | null
+          temp_password?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       detection_details: {
