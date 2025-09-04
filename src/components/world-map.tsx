@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import { DetectionData } from "@/hooks/useYearlyDetections";
+import "leaflet/dist/leaflet.css"; // Leaflet CSS
 
 // Component to auto-fit map to all coordinates
 const FitBounds = ({ locations }: { locations: [number, number][] }) => {
@@ -31,17 +32,19 @@ const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
       Math.min(1, intensity / maxIntensity),
     ]) as [number, number, number][];
 
-    const heatLayer = (L as any).heatLayer(normalizedPoints, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-      gradient: {
-        0.1: "blue",
-        0.3: "lime",
-        0.6: "orange",
-        0.9: "red",
-      },
-    }).addTo(map);
+    const heatLayer = (L as any)
+      .heatLayer(normalizedPoints, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17,
+        gradient: {
+          0.1: "blue",
+          0.3: "lime",
+          0.6: "orange",
+          0.9: "red",
+        },
+      })
+      .addTo(map);
 
     return () => {
       map.removeLayer(heatLayer);
@@ -85,8 +88,8 @@ export function WorldMap({ detections, showMarkers = true }: WorldMapProps) {
       style={{ height: "500px", width: "100%" }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 
       <HeatmapLayer points={heatPoints} />
