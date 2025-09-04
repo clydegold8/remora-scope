@@ -1,154 +1,127 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { MapPin, Calendar, Users, Car, Activity } from "lucide-react"
-
-import { DetectionData } from "@/hooks/useDetections"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { LoadingSpinner } from "./ui/loading-spinner";
+import { useEffect, useRef } from "react";
+import { Database } from "lucide-react";
+import type { DetectionData } from "@/hooks/useYearlyDetections";
 
 interface DataTableProps {
-  data: DetectionData[]
-  isLoading?: boolean
+  data: DetectionData[];
+  hasMore: boolean;
+  onLoadMore: () => void;
+  isLoading?: boolean;
 }
 
-export function DataTable({ data, isLoading = false }: DataTableProps) {
-  // Remove delete functionality as requested
+export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: DataTableProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const formatLocation = (lat?: number, lng?: number) => {
-    if (!lat || !lng) return "N/A"
-    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-  }
+  const formatLocation = (latitude?: number, longitude?: number) => {
+    if (!latitude || !longitude) return "No GPS data";
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  };
 
   const getTotalDetections = (peopleCount: number, carCount: number) => {
-    return peopleCount + carCount
-  }
+    return peopleCount + carCount;
+  };
 
-  if (data.length === 0) {
-    return (
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <span>Detection History</span>
-          </CardTitle>
-          <CardDescription>Recent sensor detection records</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-32 text-muted-foreground">
-            <div className="text-center">
-              <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No detections recorded yet</p>
-              <p className="text-sm">Sensor data will appear here when available</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = scrollRef.current;
+      if (!container || isLoading || !hasMore) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollTop + clientHeight >= scrollHeight - 100) {
+        onLoadMore();
+      }
+    };
+
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [isLoading, hasMore, onLoadMore]);
 
   return (
     <Card className="glass-card animate-fade-in">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <span>Detection History</span>
-          </div>
-          <Badge variant="secondary" className="animate-slide-in">
-            {data.length} record{data.length !== 1 ? 's' : ''}
-          </Badge>
+        <CardTitle className="flex items-center space-x-2">
+          <Database className="h-5 w-5 text-primary" />
+          <span>Detection History</span>
         </CardTitle>
-        <CardDescription>
-          Recent sensor detection records from your urban traffic monitoring network
-        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>Detected</span>
-                  </div>
-                </TableHead>
-                <TableHead>Sensor ID</TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span>People</span>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-2">
-                    <Car className="h-4 w-4" />
-                    <span>Cars</span>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>Location</span>
-                  </div>
-                </TableHead>
-                <TableHead>Altitude</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((record) => (
-                <TableRow 
-                  key={record.id} 
-                  className="hover:bg-muted/50 transition-colors duration-200"
-                >
-                  <TableCell className="font-medium">
-                    <div className="text-sm">
-                      {new Date(record.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(record.created_at).toLocaleTimeString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono">
-                      #{record.remora_id}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={record.people_count > 0 ? "default" : "secondary"}
-                        className="w-8 h-6 justify-center"
-                      >
-                        {record.people_count}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={record.car_count > 0 ? "default" : "secondary"}
-                        className="w-8 h-6 justify-center"
-                      >
-                        {record.car_count}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-mono text-xs">
-                      {formatLocation(record.latitude, record.longitude)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {record.altitude ? `${record.altitude.toFixed(1)}m` : "N/A"}
-                    </div>
-                  </TableCell>
+      <CardContent className="p-0">
+        {data.length === 0 && !isLoading ? (
+          <div className="flex items-center justify-center py-8 px-6">
+            <div className="text-center">
+              <Database className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <p className="text-muted-foreground">No detections recorded yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Detection data will appear here as sensors report activity
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div 
+            ref={scrollRef}
+            className="max-h-96 overflow-y-auto overflow-x-auto border-t"
+          >
+            <Table>
+              <TableHeader className="sticky top-0 bg-card z-10">
+                <TableRow>
+                  <TableHead>Detected Time</TableHead>
+                  <TableHead>Sensor ID</TableHead>
+                  <TableHead>People</TableHead>
+                  <TableHead>Cars</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Altitude</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {data.map((detection) => (
+                  <TableRow key={detection.id} className="hover:bg-muted/50 transition-colors">
+                    <TableCell className="font-mono text-sm">
+                      {detection.created_at 
+                        ? new Date(detection.created_at).toLocaleString()
+                        : detection.timestamp 
+                        ? new Date(detection.timestamp * 1000).toLocaleString()
+                        : "Unknown"
+                      }
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      {detection.remora_id}
+                    </TableCell>
+                    <TableCell className="text-primary font-medium">
+                      {detection.people_count}
+                    </TableCell>
+                    <TableCell className="text-accent font-medium">
+                      {detection.car_count}
+                    </TableCell>
+                    <TableCell className="font-bold">
+                      {getTotalDetections(detection.people_count, detection.car_count)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {formatLocation(detection.latitude, detection.longitude)}
+                    </TableCell>
+                    <TableCell>
+                      {detection.altitude ? `${detection.altitude.toFixed(1)}m` : "N/A"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      <LoadingSpinner size="sm" className="mx-auto" />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
-  )
+  );
 }
