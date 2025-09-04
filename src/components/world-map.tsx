@@ -1,116 +1,110 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Globe } from "lucide-react"
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
+import { DetectionData } from "@/hooks/useYearlyDetections";
 
-export interface LocationData {
-  id: string
-  remora_id: number
-  people_count: number
-  car_count: number
-  latitude?: number
-  longitude?: number
-  altitude?: number
-  created_at: string
-}
+// Component to auto-fit map to all coordinates
+const FitBounds = ({ locations }: { locations: [number, number][] }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(locations);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [locations, map]);
+  return null;
+};
+
+// Heatmap layer
+const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || points.length === 0) return;
+
+    // Normalize intensity to 0–1 scale for heatmap
+    const maxIntensity = Math.max(...points.map((p) => p[2]), 1);
+    const normalizedPoints = points.map(([lat, lng, intensity]) => [
+      lat,
+      lng,
+      Math.min(1, intensity / maxIntensity),
+    ]) as [number, number, number][];
+
+    const heatLayer = (L as any).heatLayer(normalizedPoints, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      gradient: {
+        0.1: "blue",
+        0.3: "lime",
+        0.6: "orange",
+        0.9: "red",
+      },
+    }).addTo(map);
+
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [map, points]);
+
+  return null;
+};
 
 interface WorldMapProps {
-  data: LocationData[]
+  detections: DetectionData[];
+  showMarkers?: boolean; // optional markers on top
 }
 
-export function WorldMap({ data }: WorldMapProps) {
-  // Filter data to only include items with valid coordinates
-  const validLocationData = data.filter(item => 
-    item.latitude !== null && 
-    item.longitude !== null && 
-    item.latitude !== undefined &&
-    item.longitude !== undefined &&
-    !isNaN(item.latitude) && 
-    !isNaN(item.longitude)
-  )
+export function WorldMap({ detections, showMarkers = true }: WorldMapProps) {
+  // Filter valid coordinates
+  const validDetections = detections.filter(
+    (d) =>
+      typeof d.latitude === "number" &&
+      !isNaN(d.latitude) &&
+      typeof d.longitude === "number" &&
+      !isNaN(d.longitude)
+  );
 
-  if (validLocationData.length === 0) {
-    return (
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Globe className="h-5 w-5 text-primary" />
-            <span>Global Detection Map</span>
-          </CardTitle>
-          <CardDescription>Geographic distribution of sensor detections</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-80 text-muted-foreground">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No location data available</p>
-              <p className="text-sm">Add detections with coordinates to see them on the map</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const locations: [number, number][] = validDetections.map((d) => [
+    d.latitude!,
+    d.longitude!,
+  ]);
+
+  const heatPoints: [number, number, number][] = validDetections.map((d) => [
+    d.latitude!,
+    d.longitude!,
+    d.people_count + d.car_count, // intensity
+  ]);
 
   return (
-    <Card className="glass-card animate-fade-in">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Globe className="h-5 w-5 text-primary" />
-          <span>Global Detection Map</span>
-        </CardTitle>
-        <CardDescription>
-          Geographic distribution of {validLocationData.length} sensor detection{validLocationData.length !== 1 ? 's' : ''}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="text-center p-8 border-2 border-dashed border-muted rounded-lg">
-            <Globe className="h-16 w-16 mx-auto mb-4 text-primary opacity-50" />
-            <p className="text-lg font-medium text-muted-foreground mb-2">
-              Interactive Map Coming Soon
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Map visualization will be available once Supabase is connected
-            </p>
-          </div>
-          
-          {/* Location List */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm text-muted-foreground mb-3">
-              Recorded Locations ({validLocationData.length})
-            </h4>
-            <div className="grid gap-2 max-h-48 overflow-y-auto">
-              {validLocationData.map((location) => (
-                <div 
-                  key={location.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card/50 hover:bg-card transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-1.5 rounded-full bg-primary/10">
-                      <MapPin className="h-3 w-3 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">
-                        Sensor #{location.remora_id}
-                      </div>
-                      <div className="font-mono text-xs text-muted-foreground">
-                        {location.latitude?.toFixed(4)}, {location.longitude?.toFixed(4)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {location.people_count + location.car_count} detections
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {location.altitude && `${location.altitude.toFixed(1)}m`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+    <MapContainer
+      center={[12.8797, 121.774]} // default center on Philippines
+      zoom={5}
+      scrollWheelZoom={true}
+      style={{ height: "500px", width: "100%" }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <HeatmapLayer points={heatPoints} />
+
+      {showMarkers &&
+        validDetections.map((d, i) => (
+          <Marker key={i} position={[d.latitude!, d.longitude!]}>
+            <Popup>
+              <div>
+                <strong>Sensor ID:</strong> {d.remora_id} <br />
+                <strong>People:</strong> {d.people_count} <br />
+                <strong>Cars:</strong> {d.car_count}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+      <FitBounds locations={locations} />
+    </MapContainer>
+  );
 }

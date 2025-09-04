@@ -24,6 +24,7 @@ import {
 import { useYearlyDetections } from "@/hooks/useYearlyDetections";
 import { useInfiniteDetections } from "@/hooks/useInfiniteDetections";
 import { useLoading } from "@/contexts/LoadingContext";
+import { WorldMap } from "@/components/world-map";
 
 export default function Dashboard() {
   const currentYear = new Date().getFullYear();
@@ -220,9 +221,9 @@ export default function Dashboard() {
         </LoadingOverlay>
 
         {/* Charts and Map Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <DetectionChart aggMonthStats={aggMonthStats} data={detections} />
-          <InteractiveMap data={detections} />
+          <InteractiveMap isLoading={isLoading} data={detections} />
         </div>
 
         {/* Data Table */}
