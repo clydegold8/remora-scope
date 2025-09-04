@@ -1,5 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { LoadingSpinner } from "./ui/loading-spinner";
 import { useEffect, useRef } from "react";
 import { Database } from "lucide-react";
@@ -7,12 +14,15 @@ import type { DetectionData } from "@/hooks/useYearlyDetections";
 
 interface DataTableProps {
   data: DetectionData[];
-  hasMore: boolean;
   onLoadMore: () => void;
   isLoading?: boolean;
 }
 
-export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: DataTableProps) {
+export function DataTable({
+  data,
+  onLoadMore,
+  isLoading = false,
+}: DataTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const formatLocation = (latitude?: number, longitude?: number) => {
@@ -28,7 +38,7 @@ export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: Data
   useEffect(() => {
     const handleScroll = () => {
       const container = scrollRef.current;
-      if (!container || isLoading || !hasMore) return;
+      if (!container || isLoading) return;
 
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollTop + clientHeight >= scrollHeight - 100) {
@@ -38,10 +48,10 @@ export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: Data
 
     const container = scrollRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
     }
-  }, [isLoading, hasMore, onLoadMore]);
+  }, [isLoading, onLoadMore]);
 
   return (
     <Card className="glass-card animate-fade-in">
@@ -56,14 +66,16 @@ export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: Data
           <div className="flex items-center justify-center py-8 px-6">
             <div className="text-center">
               <Database className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">No detections recorded yet</p>
+              <p className="text-muted-foreground">
+                No detections recorded yet
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 Detection data will appear here as sensors report activity
               </p>
             </div>
           </div>
         ) : (
-          <div 
+          <div
             ref={scrollRef}
             className="max-h-96 overflow-y-auto overflow-x-auto border-t"
           >
@@ -80,15 +92,15 @@ export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: Data
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((detection) => (
-                  <TableRow key={detection.id} className="hover:bg-muted/50 transition-colors">
+                {data.map((detection,index) => (
+                  <TableRow
+                    key={detection.id+index}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
                     <TableCell className="font-mono text-sm">
-                      {detection.created_at 
-                        ? new Date(detection.created_at).toLocaleString()
-                        : detection.timestamp 
+                      {detection.timestamp
                         ? new Date(detection.timestamp * 1000).toLocaleString()
-                        : "Unknown"
-                      }
+                        : "Unknown"}
                     </TableCell>
                     <TableCell className="font-semibold">
                       {detection.remora_id}
@@ -100,13 +112,18 @@ export function DataTable({ data, hasMore, onLoadMore, isLoading = false }: Data
                       {detection.car_count}
                     </TableCell>
                     <TableCell className="font-bold">
-                      {getTotalDetections(detection.people_count, detection.car_count)}
+                      {getTotalDetections(
+                        detection.people_count,
+                        detection.car_count
+                      )}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {formatLocation(detection.latitude, detection.longitude)}
                     </TableCell>
                     <TableCell>
-                      {detection.altitude ? `${detection.altitude.toFixed(1)}m` : "N/A"}
+                      {detection.altitude
+                        ? `${detection.altitude.toFixed(1)}m`
+                        : "N/A"}
                     </TableCell>
                   </TableRow>
                 ))}

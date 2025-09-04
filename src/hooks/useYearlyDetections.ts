@@ -22,12 +22,21 @@ export interface YearlyStats {
   activeSensors: number;
   highestPeopleCount: { count: number; month: string };
   highestCarsCount: { count: number; month: string };
+  lowestPeopleCount: { count: number; month: string };
+  lowestCarsCount: { count: number; month: string };
+}
+
+export interface AggMonthStats {
+  month: string;
+  avgPeople: number;
+  avgCars: number;
 }
 
 export function useYearlyDetections(selectedYear: number) {
+  const [aggMonthStats, setAggMonthStats] = useState<AggMonthStats[]>([]);
   const [detections, setDetections] = useState<DetectionData[]>([]);
   const [yearlyStats, setYearlyStats] = useState<YearlyStats | null>(null);
-  const { setLoading } = useLoading('yearly-detections');
+  const { setLoading } = useLoading("yearly-detections");
 
   const fetchYearlyDetections = async (year: number) => {
     setLoading(true);
@@ -63,39 +72,62 @@ export function useYearlyDetections(selectedYear: number) {
       }));
 
       setDetections(transformedData);
-      
+
       // Calculate yearly statistics
       if (transformedData.length > 0) {
-        const totalPeople = transformedData.reduce((sum, d) => sum + d.people_count, 0);
-        const totalCars = transformedData.reduce((sum, d) => sum + d.car_count, 0);
-        const activeSensors = new Set(transformedData.map(d => d.remora_id)).size;
+        const totalPeople = transformedData.reduce(
+          (sum, d) => sum + d.people_count,
+          0
+        );
+        const totalCars = transformedData.reduce(
+          (sum, d) => sum + d.car_count,
+          0
+        );
+        const activeSensors = new Set(transformedData.map((d) => d.remora_id))
+          .size;
 
         // Calculate monthly stats for highest counts
-        const monthlyStats: Record<string, { people: number; cars: number }> = {};
-        
-        transformedData.forEach(detection => {
+        const monthlyStats: Record<string, { people: number; cars: number }> =
+          {};
+
+        transformedData.forEach((detection) => {
           if (detection.timestamp) {
             const date = new Date(detection.timestamp * 1000);
-            const monthKey = date.toLocaleString('default', { month: 'long' });
-            
+            const monthKey = date.toLocaleString("default", { month: "long" });
+
             if (!monthlyStats[monthKey]) {
               monthlyStats[monthKey] = { people: 0, cars: 0 };
             }
-            
+
             monthlyStats[monthKey].people += detection.people_count;
             monthlyStats[monthKey].cars += detection.car_count;
           }
         });
 
         const monthsWithStats = Object.entries(monthlyStats);
-        const highestPeopleMonth = monthsWithStats.reduce((max, [month, stats]) => 
-          stats.people > max.count ? { count: stats.people, month } : max, 
-          { count: 0, month: 'N/A' }
+        const highestPeopleMonth = monthsWithStats.reduce(
+          (max, [month, stats]) =>
+            stats.people > max.count ? { count: stats.people, month } : max,
+          { count: 0, month: "N/A" }
         );
-        
-        const highestCarsMonth = monthsWithStats.reduce((max, [month, stats]) => 
-          stats.cars > max.count ? { count: stats.cars, month } : max, 
-          { count: 0, month: 'N/A' }
+
+        const highestCarsMonth = monthsWithStats.reduce(
+          (max, [month, stats]) =>
+            stats.cars > max.count ? { count: stats.cars, month } : max,
+          { count: 0, month: "N/A" }
+        );
+
+        // Lowest (initialize with Infinity so the first comparison always works)
+        const lowestPeopleMonth = monthsWithStats.reduce(
+          (min, [month, stats]) =>
+            stats.people < min.count ? { count: stats.people, month } : min,
+          { count: Infinity, month: "N/A" }
+        );
+
+        const lowestCarsMonth = monthsWithStats.reduce(
+          (min, [month, stats]) =>
+            stats.cars < min.count ? { count: stats.cars, month } : min,
+          { count: Infinity, month: "N/A" }
         );
 
         setYearlyStats({
@@ -106,6 +138,8 @@ export function useYearlyDetections(selectedYear: number) {
           activeSensors,
           highestPeopleCount: highestPeopleMonth,
           highestCarsCount: highestCarsMonth,
+          lowestCarsCount: lowestCarsMonth,
+          lowestPeopleCount: lowestPeopleMonth,
         });
       } else {
         setYearlyStats({
@@ -114,10 +148,43 @@ export function useYearlyDetections(selectedYear: number) {
           totalPeople: 0,
           totalCars: 0,
           activeSensors: 0,
-          highestPeopleCount: { count: 0, month: 'N/A' },
-          highestCarsCount: { count: 0, month: 'N/A' },
+          highestPeopleCount: { count: 0, month: "N/A" },
+          highestCarsCount: { count: 0, month: "N/A" },
+          lowestPeopleCount: { count: 0, month: "N/A" },
+          lowestCarsCount: { count: 0, month: "N/A" },
         });
       }
+
+      const monthlyAgg: Record<
+        string,
+        { totalPeople: number; totalCars: number; count: number }
+      > = {};
+
+      data.forEach(({ timestamp, people_count, car_count }) => {
+        const date = new Date(timestamp * 1000); // epoch → JS Date
+        const key = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+        if (!monthlyAgg[key]) {
+          monthlyAgg[key] = { totalPeople: 0, totalCars: 0, count: 0 };
+        }
+
+        monthlyAgg[key].totalPeople += people_count;
+        monthlyAgg[key].totalCars += car_count;
+        monthlyAgg[key].count++;
+      });
+
+      // Turn into array for Chart.js
+      const refinedData = Object.entries(monthlyAgg).map(
+        ([month, { totalPeople, totalCars, count }]) => ({
+          month,
+          avgPeople: Math.round(totalPeople / count),
+          avgCars: Math.round(totalCars / count),
+        })
+      );
+
+      setAggMonthStats(refinedData);
     } catch (error) {
       console.error("Error fetching yearly detections:", error);
       setDetections([]);
@@ -134,6 +201,7 @@ export function useYearlyDetections(selectedYear: number) {
   return {
     detections,
     yearlyStats,
+    aggMonthStats,
     refetch: () => fetchYearlyDetections(selectedYear),
   };
 }
@@ -141,11 +209,11 @@ export function useYearlyDetections(selectedYear: number) {
 // Helper functions for location parsing
 function parseLocationToLat(location: any): number | undefined {
   if (!location) return undefined;
-  
+
   if (typeof location === "object" && location.coordinates) {
     return location.coordinates[1];
   }
-  
+
   if (typeof location === "string") {
     const match = location.match(/POINT\(([^)]+)\)/);
     if (match) {
@@ -153,17 +221,17 @@ function parseLocationToLat(location: any): number | undefined {
       return coords.length === 2 ? parseFloat(coords[1]) : undefined;
     }
   }
-  
+
   return undefined;
 }
 
 function parseLocationToLng(location: any): number | undefined {
   if (!location) return undefined;
-  
+
   if (typeof location === "object" && location.coordinates) {
     return location.coordinates[0];
   }
-  
+
   if (typeof location === "string") {
     const match = location.match(/POINT\(([^)]+)\)/);
     if (match) {
@@ -171,6 +239,6 @@ function parseLocationToLng(location: any): number | undefined {
       return coords.length === 2 ? parseFloat(coords[0]) : undefined;
     }
   }
-  
+
   return undefined;
 }

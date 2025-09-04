@@ -63,17 +63,10 @@ export function useInfiniteDetections(selectedYear: number) {
     }
   }, [page, hasMore, fetchDetections]);
 
-  useEffect(() => {
-    setDetections([]);
-    setHasMore(true);
-    setPage(0);
-    fetchDetections(0, true);
-  }, [selectedYear, fetchDetections]);
-
   return {
     detections,
-    hasMore,
     loadMore,
+    fetchDetections,
     refetch: () => fetchDetections(0, true),
   };
 }

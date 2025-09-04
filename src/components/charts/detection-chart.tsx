@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, BarChart3 } from "lucide-react";
+import { AggMonthStats, DetectionData } from "@/hooks/useYearlyDetections";
 
 ChartJS.register(
   CategoryScale,
@@ -32,35 +33,16 @@ ChartJS.register(
   Legend
 );
 
-interface DetectionData {
-  id: string;
-  remora_id: number;
-  people_count: number;
-  car_count: number;
-  created_at: string;
-}
-
 interface DetectionChartProps {
   data: DetectionData[];
+  aggMonthStats: AggMonthStats[];
 }
 
-export function DetectionChart({ data }: DetectionChartProps) {
-  // Prepare data for charts
-  const sortedData = data.sort(
-    (a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
+export function DetectionChart({ data, aggMonthStats }: DetectionChartProps) {
+  const labels = aggMonthStats.map((item) => item.month);
 
-  const labels = sortedData.map((item) =>
-    new Date(item.created_at).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-    })
-  );
-
-  const peopleData = sortedData.map((item) => item.people_count);
-  const carData = sortedData.map((item) => item.car_count);
+  const peopleData = aggMonthStats.map((item) => item.avgPeople);
+  const carData = aggMonthStats.map((item) => item.avgCars);
 
   const rootStyles = getComputedStyle(document.documentElement);
   const foreground = rootStyles.getPropertyValue("--foreground").trim();
@@ -113,6 +95,9 @@ export function DetectionChart({ data }: DetectionChartProps) {
           font: {
             family: "Inter",
           },
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 12, // only 12 labels (Jan–Dec)
         },
         grid: {
           color: hslBorder,
@@ -170,6 +155,9 @@ export function DetectionChart({ data }: DetectionChartProps) {
           font: {
             family: "Inter",
           },
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 12, // only 12 labels (Jan–Dec)
         },
         grid: {
           display: false,
@@ -193,7 +181,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
     labels,
     datasets: [
       {
-        label: "People Detected",
+        label: "Avg. People Detected",
         data: peopleData,
         borderColor: hslPrimary,
         backgroundColor: hslPrimaryBg,
@@ -201,7 +189,7 @@ export function DetectionChart({ data }: DetectionChartProps) {
         borderWidth: 2,
       },
       {
-        label: "Cars Detected",
+        label: "Avg. Cars Detected",
         data: carData,
         borderColor: hslAccent,
         backgroundColor: hslAccentBg,
