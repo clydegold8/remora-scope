@@ -43,17 +43,38 @@ export function useYearlyDetections(selectedYear: number) {
     try {
       // Calculate year boundaries as timestamps
       const yearStart = new Date(`${year}-01-01T00:00:00Z`).getTime() / 1000;
-      const yearEnd = new Date(`${year + 1}-01-01T00:00:00Z`).getTime() / 1000;
+      const yearEnd = new Date(`${year}-12-31T23:59:59Z`).getTime() / 1000;
 
-      const { data, error } = await supabase
+      // First 1000
+      const { data: data1, error: error1 } = await supabase
         .from("detection_details")
         .select("*")
         .gte("timestamp", yearStart)
-        .lt("timestamp", yearEnd)
-        .order("timestamp", { ascending: false });
+        .lte("timestamp", yearEnd)
+        .order("timestamp", { ascending: true })
+        .range(0, 999);
 
-      if (error) {
-        console.error("Error fetching yearly detections:", error);
+      // Next 200 (or whatever remains)
+      const { data: data2, error: error2 } = await supabase
+        .from("detection_details")
+        .select("*")
+        .gte("timestamp", yearStart)
+        .lte("timestamp", yearEnd)
+        .order("timestamp", { ascending: true })
+        .range(1000, 1199);
+
+      // Combine
+      const data = [...data1, ...data2];
+
+      if (error1) {
+        console.error("Error fetching yearly detections:", error1);
+        setDetections([]);
+        setYearlyStats(null);
+        return;
+      }
+
+      if (error2) {
+        console.error("Error fetching yearly detections:", error2);
         setDetections([]);
         setYearlyStats(null);
         return;
